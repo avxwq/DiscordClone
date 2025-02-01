@@ -117,5 +117,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<ChatHub>("/ChatHub");
+app.MapHub<VoiceChatHub>("/VoiceChatHub");
 
 app.Run();

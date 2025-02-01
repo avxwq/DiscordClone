@@ -1,12 +1,15 @@
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { useStore } from "../../../app/stores/store";
-import { Box, Typography, Divider } from "@mui/material";
-import {  Outlet, useNavigate, useParams } from "react-router-dom";
+import { Box, Typography, Divider, Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
+import { Outlet, useNavigate } from "react-router-dom";
+import { usePrivateVoiceChat } from "../hooks/usePrivateVoiceChat";
 
 export default observer(function ChannelDashboard() {
     const { userStore, friendStore } = useStore();
     const navigate = useNavigate();
+    const { callUser, incomingCall, acceptCall, rejectCall } = usePrivateVoiceChat(userStore.user!.id);
+
     useEffect(() => {
         const loadFriends = async () => {
             friendStore.setFriends(await friendStore.GetUserFriendsById(userStore.user!.id));
@@ -19,8 +22,9 @@ export default observer(function ChannelDashboard() {
     }
 
     const handleCallClick = (friendId: string) => {
-        alert(`Calling ${friendId}`);
+        callUser(friendId);
     }
+
     return (
         <Box display="flex" flexDirection="row" height="91vh" width="1474px" sx={{ backgroundColor: "#4E4E4E" }}>
             <Box
@@ -34,22 +38,18 @@ export default observer(function ChannelDashboard() {
                     flexShrink: 0,
                 }}
             >
-                <Typography variant="h6">
-                    Friends
-                </Typography>
-
+                <Typography variant="h6">Friends</Typography>
                 <Divider sx={{ width: '80%', borderColor: 'gray', my: 1 }} />
                 {friendStore.friends ? (
-                    
                     friendStore.friends.map((friend) => (
                         <Box
                             key={friend.id}
                             display="flex"
-                            gap="30px"
-                            p="5px 10px 5px 10px"
+                            gap="10px"
+                            p="10px"
                             alignItems="center"
                             width="85%"
-                            height="45px"
+                            height="50px"
                             sx={{
                                 backgroundColor: "#222222",
                                 borderRadius: "15px",
@@ -59,23 +59,33 @@ export default observer(function ChannelDashboard() {
                                     cursor: "pointer",
                                 },
                             }}
-                            onClick={() => handleClick(friend.id)}
                         >
-                            <Box display="flex" flexDirection="row" alignItems="center" justifyContent="space-between" width="100%" m="20px">
+                            <Box display="flex" flexDirection="row" alignItems="center" width="100%">
                                 <Box
                                     display="flex"
-                                    width="30px"
-                                    height="30px"
+                                    width="40px"
+                                    height="40px"
                                     sx={{
                                         borderRadius: "50%",
                                         backgroundImage: friend.image ? `url(${friend.image})` : `url(/user.png)`,
                                         backgroundSize: "cover",
                                         backgroundPosition: "center",
                                     }}
+                                    onClick={() => handleClick(friend.id)}
                                 />
-                                <Typography variant="body1">{friend.username}</Typography>
+                                <Typography variant="body1" sx={{ ml: 2 }} onClick={() => handleClick(friend.id)}>
+                                    {friend.username}
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    size="small"
+                                    sx={{ ml: "auto" }}
+                                    onClick={() => handleCallClick(friend.id)}
+                                >
+                                    Call
+                                </Button>
                             </Box>
-                            <a onClick={() => handleCallClick(friend.id)}>Call</a>
                         </Box>
                     ))
                 ) : (
@@ -85,16 +95,18 @@ export default observer(function ChannelDashboard() {
                 )}
             </Box>
 
-            <Box
-                display="flex"
-                sx={{
-                    flexGrow: 1,
-                    backgroundColor: "#060018",
-                    height: "100%"
-                }}
-            >
+            <Box display="flex" sx={{ flexGrow: 1, backgroundColor: "#060018", height: "100%" }}>
                 <Outlet />
             </Box>
+
+            {/* Dialog do obs³ugi po³¹czeñ */}
+            <Dialog open={Boolean(incomingCall)} onClose={() => rejectCall(incomingCall!)}>
+                <DialogTitle>{incomingCall ? `Incoming call from ${incomingCall}` : ""}</DialogTitle>
+                <DialogActions>
+                    <Button onClick={() => acceptCall(incomingCall!)} color="primary">Accept</Button>
+                    <Button onClick={() => rejectCall(incomingCall!)} color="secondary">Reject</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 });

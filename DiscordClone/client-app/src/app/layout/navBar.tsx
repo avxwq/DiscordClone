@@ -21,14 +21,14 @@ export default function NavBar() {
                     {userStore.getUser() && (
                         <Box display="flex" justifyContent="right" alignItems="center" gap="20px">
                             <Link to={"/profile"}>
-                                <Button variant="contained" color="Primary">
+                                <Button variant="contained" color="primary">
                                     Profile
                                 </Button>
                             </Link>
                             <Button
                                 onClick={handleOnClick}
                                 variant="contained"
-                                color="Primary"
+                                color="primary"
                                 disabled={userStore.getLoading()}
                                 startIcon={userStore.getLoading() ? <CircularProgress size={16} /> : null}
                             >
